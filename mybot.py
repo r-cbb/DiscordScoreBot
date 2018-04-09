@@ -1,0 +1,148 @@
+import random
+import asyncio
+import requests
+from credentials_discord import TOKEN
+from discord import Game
+from discord.ext.commands import Bot
+
+BOT_PREFIX = ("?", "!")
+
+teams = ["Toronto","Boston","Philadelphia","Cleveland","Indiana","Miami","Milwaukee Bucks","Washington","Detroit","Charlotte","New-York","Brooklyn","Chicago","Orlando","Atlanta","Houston","Golden State","Portland","Utah","New Orleans","San Antonio","Oklahoma City","Minnesota","Denver","LA","Los Angeles","Sacramento","Dallas","Memphis","Phoenix"]
+teams_short = ["TOR","BOS","PHI","CLE","IND","MIA","MIL","WSH","DET","CHA","NY","BKN","CHI","ORL","ATL","HOU","GS","POR","UTAH","NO","SA","OKC","MIN","DEN","LAC","LAL","SAC","DAL","MEM","PHX"]
+
+client = Bot(command_prefix=BOT_PREFIX)
+
+@client.command()
+async def allgames():
+	try:
+		import espnscrape
+		for game in espnscrape.scrapeESPN(0):
+			gamestring = game['team1'] + " " + str(game['score1']) + " vs. " + game['team2'] + " " + str(game['score2']) + " - " + game['time'] + "(TV: " + game['network'] + ")"
+			await client.say(gamestring)
+	except Exception as e:
+		print(str(e))
+		await client.say("Error Occured")
+		
+@client.command()
+async def score(*,team:str):
+	try:
+		if team not in teams:
+			await client.say("Can't Find Team")
+			print("Can't Find Team")
+		else:
+			import espnscrape
+			allgames = espnscrape.scrapeESPN(0)
+			if team in (game['team1'] for game in allgames) or team in (game['team2'] for game in allgames):
+				for game in allgames:
+					if team == game['team1'] or team == game['team2']:
+						gamestring = game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
+						await client.say(gamestring)
+						print(gamestring)
+						break
+			else:
+				allgameteam = '**Past Games:**\n'
+				for n in range(-7,7):
+					allgames = espnscrape.scrapeESPN(n)
+					if team in (game['team1'] for game in allgames) or team in (game['team2'] for game in allgames):
+						for game in allgames:
+							if team == game['team1'] or team == game['team2']:
+								gamestring = game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
+								# await client.say(gamestring)
+								allgameteam = allgameteam + gamestring + "\n"
+								print(gamestring)
+					if n == 0:
+						allgameteam = allgameteam + "**Future Games:**\n"
+						
+				await client.say("There are currently no games today.\n" + allgameteam)
+				#await client.say("No Games")
+				#print("No Games")
+	except Exception as e:
+		print(str(e))
+		await client.say("Error Occured")
+		
+@client.command()
+async def schedule(*,team:str):
+	try:
+		if team not in teams:
+			await client.say("Can't Find Team")
+			print("Can't Find Team")
+		else:
+			import espnscrape
+			allgames = espnscrape.scrapeESPN(0)
+			allgameteam = '**Past Games:**\n'
+			for n in range(-7,7):
+				gameday = False
+				allgames = espnscrape.scrapeESPN(n)
+				if team in (game['team1'] for game in allgames) or team in (game['team2'] for game in allgames):
+					for game in allgames:
+						if team == game['team1'] or team == game['team2']:
+							gamestring = game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
+							# await client.say(gamestring)
+							gameday = True
+							allgameteam = allgameteam + gamestring + "\n"
+							print(gamestring)
+				if n == -1:
+					allgameteam = allgameteam + "**Today's Game:**\n"
+				elif n == 0:
+					print("Enter 0 if")
+					print(gameday)
+					if not gameday:
+						print("entered if not statement")
+						allgameteam = allgameteam.replace("**Today's Game:**\n","")
+						
+					allgameteam = allgameteam + "**Future Game:**\n"
+					
+			await client.say("Basketball Schedule for "+team+"\n"+allgameteam)
+			#await client.say("No Games")
+			#print("No Games")
+	except Exception as e:
+		print(str(e))
+		await client.say("Error Occured")
+		
+@client.command(name='8ball',
+                description="Answers a yes/no question.",
+                brief="Answers from the beyond.",
+                aliases=['eight_ball', 'eightball', '8-ball'],
+                pass_context=True)
+async def eight_ball(context):
+    possible_responses = [
+        'That is a resounding no',
+        'It is not looking likely',
+        'Too hard to tell',
+        'It is quite possible',
+        'Definitely',
+    ]
+    await client.say(random.choice(possible_responses) + ", " + context.message.author.mention)
+
+
+@client.command()
+async def square(number):
+    squared_value = int(number) * int(number)
+    await client.say(str(number) + " squared is " + str(squared_value))
+
+
+@client.event
+async def on_ready():
+    await client.change_presence(game=Game(name="Basketball"))
+    print("Logged in as " + client.user.name)
+
+
+@client.command()
+async def bitcoin():
+    url = 'https://api.coindesk.com/v1/bpi/currentprice/BTC.json'
+    response = requests.get(url)
+    value = response.json()['bpi']['USD']['rate']
+    await client.say("Bitcoin price is: $" + value)
+
+
+async def list_servers():
+    await client.wait_until_ready()
+    while not client.is_closed:
+        print("Current servers:")
+        for server in client.servers:
+            print(server.name)
+        await asyncio.sleep(600)
+
+
+client.loop.create_task(list_servers())
+client.run(TOKEN)
