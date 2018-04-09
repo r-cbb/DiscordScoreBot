@@ -26,15 +26,15 @@ async def allgames():
 @client.command()
 async def score(*,team:str):
 	try:
-		if team not in teams:
+		if team not in teams and team not in teams_short:
 			await client.say("Can't Find Team")
 			print("Can't Find Team")
 		else:
 			import espnscrape
 			allgames = espnscrape.scrapeESPN(0)
-			if team in (game['team1'] for game in allgames) or team in (game['team2'] for game in allgames):
+			if team in (game['team1'] for game in allgames) or team in (game['team2'] for game in allgames) or team in (game['team1abv'] for game in allgames) or team in (game['team2abv'] for game in allgames):
 				for game in allgames:
-					if team == game['team1'] or team == game['team2']:
+					if team == game['team1'] or team == game['team2'] or team == game['team1abv'] or team == game['team2abv']:
 						gamestring = game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
 						await client.say(gamestring)
 						print(gamestring)
@@ -43,9 +43,9 @@ async def score(*,team:str):
 				allgameteam = '**Past Games:**\n'
 				for n in range(-7,7):
 					allgames = espnscrape.scrapeESPN(n)
-					if team in (game['team1'] for game in allgames) or team in (game['team2'] for game in allgames):
+					if team in (game['team1'] for game in allgames) or team in (game['team2'] for game in allgames) or team in (game['team1abv'] for game in allgames) or team in (game['team2abv'] for game in allgames):
 						for game in allgames:
-							if team == game['team1'] or team == game['team2']:
+							if team == game['team1'] or team == game['team2'] or team == game['team1abv'] or team == game['team2abv']:
 								gamestring = game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
 								# await client.say(gamestring)
 								allgameteam = allgameteam + gamestring + "\n"
