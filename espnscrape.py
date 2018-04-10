@@ -6,8 +6,20 @@ import html
 from datetime import datetime  
 from datetime import timedelta
 
+GAME_STATUS_PRE = 0
+GAME_STATUS_IN = 1
+GAME_STATUS_POST = 2
+
+POS_TEN = 2
+POS_HALF = 3
+POS_PTEN = 4
+POS_PFIVE = 5
+POS_PTWO = 6
+POS_FINAL = 7
+
 def _returntime(delta):
-	_currenttime = datetime.now()+timedelta(days=delta)
+	#Current Time will always be adjusted backwards 4 hours (4 am eastern will change over the day, allowing games to finish.)
+	_currenttime = datetime.now()+timedelta(days=delta)-timedelta(hours=-4)
 	
 	return _addfrontzero(_currenttime.year)+_addfrontzero(_currenttime.month)+_addfrontzero(_currenttime.day)
 		
@@ -17,13 +29,10 @@ def _addfrontzero(value):
 	else:
 		return str(value)
 
-def scrapeESPN(delta):
+def scrapeESPN(delta=0):
 
-	MODE_ACTIVE = 0
-	MODE_INACTIVE = 1
-	GAME_STATUS_PRE = 0
-	GAME_STATUS_IN = 1
-	GAME_STATUS_POST = 2
+	#MODE_ACTIVE = 0
+	#MODE_INACTIVE = 1
 		
 	req = Request("http://www.espn.com/nba/scoreboard/_/date/" + _returntime(delta))
 	req.headers["User-Agent"] = UserAgent(verify_ssl=False).chrome
@@ -79,8 +88,8 @@ def scrapeESPN(delta):
 			game['network'] = "N/A"
 			pass
             
-		#print(team1,tid1,team1abv,score1,team2,tid2,team2abv,score2,game['time'],game['network'])
-		indgame = {'team1':team1,'tid1':tid1,'team1abv':team1abv,'score1':score1,'team2':team2,'tid2':tid2,'team2abv':team2abv,'score2':score2,'time':game['time'],'network':game['network']}
+		#print(team1,tid1,team1abv,score1,team2,tid2,team2abv,score2,game['time'],game['date'],game['network'])
+		indgame = {'team1':team1,'tid1':tid1,'team1abv':team1abv,'score1':score1,'team2':team2,'tid2':tid2,'team2abv':team2abv,'score2':score2,'time':game['time'],'date':game['date'],'network':game['network'],'status':game['status']}
 		games.append(indgame)
 #		print(gamestring)
 	return games
@@ -90,3 +99,75 @@ def returnallgames(time=0):
 	for game in scrapeESPN(time):
 		gamestrings = gamestrings + game['team1'] + " " + str(game['score1']) + " vs. " + game['team2'] + " " + str(game['score2']) + " - " + game['time'] + "(TV: " + game['network'] + ")"
 	return gamestrings
+
+def readlog():
+	with open('discordscorebot/gamelog.txt','r') as f:
+		lines = f.readlines()
+		
+	allgames = []
+	for line in lines:
+		game = line.replace('\n','').split(',')
+		allgames.append(game)
+	
+	return allgames
+	
+def writelog(allgames):
+	with open('discordscorebot/gamelog.txt','w') as f:
+		for game in allgames:
+			string = ''
+			for item in game[:-1]:
+				string = string + item + ','
+			string = string+game[-1]+'\n'
+			f.write(string)
+			
+def ScoreTickBuilder():
+	games = scrapeESPN()
+	livetickerstr = ''
+	allgamelog = readlog() 
+	for game in games:
+		if game['status'] == GAME_STATUS_PRE:
+			continue
+		elif game['status'] == GAME_STATUS_POST:
+			for log in allgamelog:
+				if log[0] == game['tid1'] or log[0] == game['tid2']:
+					if log[7] == 0:
+						log[7] = 1
+						livetickerstr = livetickerstr + game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
+						break
+					else:
+						break
+		else:
+			livetickerstrret, allgamelog = gameinprocess(game,allgamelog)
+			livetickerstr = livetickerstr + livetickerstrret + '\n'
+			
+	writelog(allgamelog)
+	return livetickerstr
+
+def gameinprocess(game,allgamelog):
+	if game['time'] == 'Halftime':
+		if not ifposted(allgamelog,game,POS_HALF):
+			return gamestring(game), updateprelog(allgamelog,game,POS_HALF)
+	elif game['time'] == 'End of 1st':
+		if not isposted(allgamelog,game,POS_TEN):
+			return gamestring(game), updateprelog(allgamelog,game,POS_TEN)
+	elif game['time'] == 'End of 3rd':
+		if not isposted(allgamelog,game,POS_PTEN):
+			return gamestring(game), updateprelog(allgamelog,game,POS_PTEN)
+			
+def gamestring(game):
+	return game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
+			
+def updateprelog(allgamelog,gameteam, pos):
+	for log in allgamelog:
+		if log[0] == gameteam or log[1] == gameteam:
+			for i in range(2,pos+1):
+				log[i] = '1'
+	return allgamelog
+
+def ifposted(allgamelog,gameteam,pos):
+	for log in allgamelog:
+		if log[0] == gameteam or log[1] == gameteam:
+			if log[pos] == 0:
+				return False
+			else:
+				return True
