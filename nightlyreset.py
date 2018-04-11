@@ -1,4 +1,4 @@
-#import scrapeESPN
+from espnscrape import scrapeESPN
 
 def createnewlog():
 	games = scrapeESPN(0)

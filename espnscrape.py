@@ -19,7 +19,7 @@ POS_FINAL = 7
 
 def _returntime(delta):
 	#Current Time will always be adjusted backwards 4 hours (4 am eastern will change over the day, allowing games to finish.)
-	_currenttime = datetime.now()+timedelta(days=delta)-timedelta(hours=-4)
+	_currenttime = datetime.now()+timedelta(days=delta)+timedelta(hours=-4)
 	
 	return _addfrontzero(_currenttime.year)+_addfrontzero(_currenttime.month)+_addfrontzero(_currenttime.day)
 		
@@ -130,9 +130,9 @@ def ScoreTickBuilder():
 		elif game['status'] == GAME_STATUS_POST:
 			for log in allgamelog:
 				if log[0] == game['tid1'] or log[0] == game['tid2']:
-					if log[7] == 0:
-						log[7] = 1
-						livetickerstr = livetickerstr + game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
+					if log[7] == '0':
+						log[7] = '1'
+						livetickerstr = livetickerstr + game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")\n"
 						break
 					else:
 						break
@@ -145,14 +145,18 @@ def ScoreTickBuilder():
 
 def gameinprocess(game,allgamelog):
 	if game['time'] == 'Halftime':
-		if not ifposted(allgamelog,game,POS_HALF):
-			return gamestring(game), updateprelog(allgamelog,game,POS_HALF)
+		if not ifposted(allgamelog,game['tid1'],POS_HALF):
+			return gamestring(game), updateprelog(allgamelog,game['tid1'],POS_HALF)
 	elif game['time'] == 'End of 1st':
-		if not isposted(allgamelog,game,POS_TEN):
-			return gamestring(game), updateprelog(allgamelog,game,POS_TEN)
+		if not ifposted(allgamelog,game['tid1'],POS_TEN):
+			return gamestring(game), updateprelog(allgamelog,game['tid1'],POS_TEN)
 	elif game['time'] == 'End of 3rd':
-		if not isposted(allgamelog,game,POS_PTEN):
-			return gamestring(game), updateprelog(allgamelog,game,POS_PTEN)
+		if not ifposted(allgamelog,game['tid1'],POS_PTEN):
+			return gamestring(game), updateprelog(allgamelog,game['tid1'],POS_PTEN)
+
+	#Reached if it makes it through the if statements.
+	string = ''
+	return string,allgamelog
 			
 def gamestring(game):
 	return game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
@@ -167,7 +171,7 @@ def updateprelog(allgamelog,gameteam, pos):
 def ifposted(allgamelog,gameteam,pos):
 	for log in allgamelog:
 		if log[0] == gameteam or log[1] == gameteam:
-			if log[pos] == 0:
+			if log[pos] == '0':
 				return False
 			else:
 				return True

@@ -115,10 +115,16 @@ async def liveticker():
 	await client.wait_until_ready()
 	channel = discord.Object(id="433334140868493333")
 	while not client.is_closed:
-		awaitingmessage = espnscrape.ScoreTickBuilder()
-		if awaitingmessage != '':
+		try:
 			await client.send_message(channel,espnscrape.ScoreTickBuilder())
-		await asyncio.sleep(30)
+			await asyncio.sleep(30)
+		except KeyboardInterrupt:
+			exit()
+		except Exception as e:
+			await asyncio.sleep(30)
+			continue
+			
+
 
 
 client.loop.create_task(list_servers())
