@@ -17,9 +17,10 @@ client = Bot(command_prefix=BOT_PREFIX)
 @client.command()
 async def allgames():
 	try:
+		gamestring = ''
 		for game in espnscrape.scrapeESPN(0):
-			gamestring = game['team1'] + " " + str(game['score1']) + " vs. " + game['team2'] + " " + str(game['score2']) + " - " + game['time'] + "(TV: " + game['network'] + ")"
-			await client.say(gamestring)
+			gamestring = gamestring + game['team1'] + " " + str(game['score1']) + " vs. " + game['team2'] + " " + str(game['score2']) + " - " + game['time'] + "(TV: " + game['network'] + ")\n"
+		await client.say(gamestring)
 	except Exception as e:
 		print(str(e))
 		await client.say("Error Occured")
