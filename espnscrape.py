@@ -161,11 +161,10 @@ def gameinprocess(game,allgamelog):
 def gamestring(game):
 	return game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
 			
-def updateprelog(allgamelog,gameteam, pos):
+def updateprelog(allgamelog,gameteam,pos):
 	for log in allgamelog:
 		if log[0] == gameteam or log[1] == gameteam:
-			for i in range(2,pos+1):
-				log[i] = '1'
+			log[pos] = '1'
 	return allgamelog
 
 def ifposted(allgamelog,gameteam,pos):
