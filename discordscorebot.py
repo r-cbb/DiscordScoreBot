@@ -1,7 +1,7 @@
 import random
 import asyncio
 import requests
-from credentials_discord import TOKEN
+from credentials_discord import TOKEN, CHANNEL_ID
 import discord
 from discord import Game
 from discord.ext.commands import Bot
@@ -114,7 +114,7 @@ async def list_servers():
 
 async def liveticker():
 	await client.wait_until_ready()
-	channel = discord.Object(id="433334140868493333")
+	channel = discord.Object(id=CHANNEL_ID)
 	while not client.is_closed:
 		try:
 			await client.send_message(channel,espnscrape.ScoreTickBuilder())
