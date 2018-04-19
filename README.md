@@ -16,7 +16,7 @@ https://support.discordapp.com/hc/en-us/articles/206346498-Where-can-I-find-my-U
 
 (The bot will need to have access to be able to post here.  If not available, it will not work correctly.)
 
-Add the channel id 
+Add the channel id to credentials_discord.py
 
 # nightlyreset.py
 
