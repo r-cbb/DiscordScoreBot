@@ -11,8 +11,16 @@ BOT_PREFIX = ("?", "!")
 
 teams = ["Toronto","Boston","Philadelphia","Cleveland","Indiana","Miami","Milwaukee Bucks","Washington","Detroit","Charlotte","New-York","Brooklyn","Chicago","Orlando","Atlanta","Houston","Golden State","Portland","Utah","New Orleans","San Antonio","Oklahoma City","Minnesota","Denver","LA","Los Angeles","Sacramento","Dallas","Memphis","Phoenix"]
 teams_short = ["TOR","BOS","PHI","CLE","IND","MIA","MIL","WSH","DET","CHA","NY","BKN","CHI","ORL","ATL","HOU","GS","POR","UTAH","NO","SA","OKC","MIN","DEN","LAC","LAL","SAC","DAL","MEM","PHX"]
+avaliable_roles = ["Game Night"]
+cbbid = "363172066431598595"
 
 client = Bot(command_prefix=BOT_PREFIX)
+
+########################################
+#Score Bot Commands
+#cinciforthewin
+#Last Updated: 4/29/19
+########################################
 
 @client.command()
 async def allgames():
@@ -48,14 +56,12 @@ async def score(*,team:str):
 						for game in allgames:
 							if team == game['team1'] or team == game['team2'] or team == game['team1abv'] or team == game['team2abv']:
 								gamestring = game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
-								# await client.say(gamestring)
 								allgameteam = allgameteam + gamestring + "\n"
 								print(gamestring)
 					if n == 0:
 						allgameteam = allgameteam + "**Future Games:**\n"
 						
 				await client.say("There are currently no games today.\n" + allgameteam)
-				#await client.say("No Games")
 				#print("No Games")
 	except Exception as e:
 		print(str(e))
@@ -77,7 +83,6 @@ async def schedule(*,team:str):
 					for game in allgames:
 						if team == game['team1'] or team == game['team2'] or team == game['team1abv'] or team == game['team2abv']:
 							gamestring = game['team2'] + " " + str(game['score2']) + " @ " + game['team1'] + " " + str(game['score1']) + " - " + game['time'] + " (TV: " + game['network'] + ")"
-							# await client.say(gamestring)
 							gameday = True
 							allgameteam = allgameteam + gamestring + "\n"
 							print(gamestring)
@@ -93,7 +98,6 @@ async def schedule(*,team:str):
 					allgameteam = allgameteam + "**Future Game:**\n"
 					
 			await client.say("Basketball Schedule for "+team+"\n"+allgameteam)
-			#await client.say("No Games")
 			#print("No Games")
 	except Exception as e:
 		print(str(e))
@@ -124,9 +128,40 @@ async def liveticker():
 		except Exception as e:
 			await asyncio.sleep(30)
 			continue
-			
 
+########################################			
+# Assign Role
+# By cinciforthewin
+# Last Updated: 4/29/19
+########################################
 
+@client.command(pass_context=True)
+async def addrole(ctx,*,req_role:str):
+	if req_role not in avaliable_roles:
+		sendstr = "The Role requested is not available to add or remove.  These roles are current available:\n"
+		for a_role in avaliable_roles:
+			sendstr = sendstr + "* " + a_role + "\n"
+		await client.say(sendstr)
+	else:
+		for server in client.servers:
+			if server.id == cbbid:
+				role = discord.utils.get(server.roles,name=req_role)
+				await client.add_roles(ctx.message.author,role)
+				await client.say(ctx.message.author.name + " added to the " + req_role + " role.")
+				
+@client.command(pass_context=True)
+async def removerole(ctx,*,req_role:str):
+	if req_role not in avaliable_roles:
+		sendstr = "The Role requested is not available to add or remove.  These roles are current available:\n"
+		for a_role in avaliable_roles:
+			sendstr = sendstr + "* " + a_role + "\n"
+		await client.say(sendstr)
+	else:
+		for server in client.servers:
+			if server.id == cbbid:
+				role = discord.utils.get(server.roles,name=req_role)
+				await client.remove_roles(ctx.message.author,role)
+				await client.say(ctx.message.author.name + " removed from the " + req_role + " role.")
 
 client.loop.create_task(list_servers())
 client.loop.create_task(liveticker())
