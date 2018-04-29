@@ -138,7 +138,7 @@ async def liveticker():
 @client.command(pass_context=True)
 async def addrole(ctx,*,req_role:str):
 	if req_role not in avaliable_roles:
-		sendstr = "The Role requested is not available to add or remove.  These roles are current available:\n"
+		sendstr = "The Role requested is not available to add or remove.  These roles are currently available:\n"
 		for a_role in avaliable_roles:
 			sendstr = sendstr + "* " + a_role + "\n"
 		await client.say(sendstr)
@@ -152,7 +152,7 @@ async def addrole(ctx,*,req_role:str):
 @client.command(pass_context=True)
 async def removerole(ctx,*,req_role:str):
 	if req_role not in avaliable_roles:
-		sendstr = "The Role requested is not available to add or remove.  These roles are current available:\n"
+		sendstr = "The Role requested is not available to add or remove.  These roles are currently available:\n"
 		for a_role in avaliable_roles:
 			sendstr = sendstr + "* " + a_role + "\n"
 		await client.say(sendstr)
