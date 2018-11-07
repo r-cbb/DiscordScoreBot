@@ -151,7 +151,8 @@ def ScoreTickBuilder():
                         break
         else:
             livetickerstrret, allgamelog = gameinprocess(game,allgamelog)
-            livetickerstr = livetickerstr + livetickerstrret + '\n'
+            if livetickerstrret != '':
+                livetickerstr = livetickerstr + livetickerstrret + '\n'
 
     writelog(allgamelog)
     return livetickerstr
