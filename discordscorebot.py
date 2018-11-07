@@ -6,6 +6,7 @@ import discord
 from discord import Game
 from discord.ext.commands import Bot
 import espnscrape
+import espnscrapencaa
 import pickle
 
 BOT_PREFIX = ("?", "!")
@@ -131,6 +132,19 @@ async def liveticker():
             await asyncio.sleep(30)
             continue
 
+async def livetickertwo():
+    await client.wait_until_ready()
+    channel = discord.Object(id=CHANNEL_ID)
+    while not client.is_closed:
+        try:
+            await client.send_message(channel,espnscrapencaa.ScoreTickBuilder())
+            await asyncio.sleep(30)
+        except KeyboardInterrupt:
+            exit()
+        except Exception as e:
+            await asyncio.sleep(30)
+            continue            
+            
 ########################################
 # Assign Role
 # By cinciforthewin
@@ -165,6 +179,17 @@ async def removerole(ctx,*,req_role:str):
                 await client.remove_roles(ctx.message.author,role)
                 await client.say(ctx.message.author.name + " removed from the " + req_role + " role.")
 
-client.loop.create_task(list_servers())
-client.loop.create_task(liveticker())
-client.run(TOKEN)
+				
+def run():				
+    try:
+        client.loop.create_task(list_servers())
+        client.loop.create_task(liveticker())
+        client.loop.create_task(livetickertwo())
+        client.run(TOKEN)
+    except KeyboardInterrupt:
+        exit()
+    except:
+        print("Error")
+        run()
+        
+run()
